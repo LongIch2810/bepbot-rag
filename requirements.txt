@@ -1,0 +1,11 @@
+python-dotenv
+langchain
+langchain-text-splitters
+langchain-community
+langchain-google-genai
+langchain-qdrant
+langchain-ollama
+pypdf
+pymupdf
+pdfplumber
+streamlit
