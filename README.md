@@ -47,9 +47,10 @@ bepbot-rag/
 ## ⚙️ Hướng dẫn cài đặt
 
 ### 1. Chuẩn bị môi trường & Cài đặt thư viện
+
 ```bash
 # Clone repository
-git clone https://github.com/your-username/bepbot-rag.git
+git clone https://github.com/LongIch2810/bepbot-rag.git
 cd bepbot-rag
 
 # Khởi tạo và kích hoạt virtual environment (Khuyến nghị)
@@ -64,7 +65,9 @@ pip install -r requirements.txt
 ```
 
 ### 2. Thiết lập Ollama (Local Embeddings)
+
 Dự án sử dụng mô hình embedding chạy local qua Ollama để tối ưu hiệu suất và chi phí.
+
 - Cài đặt [Ollama](https://ollama.com/) vào máy tính của bạn.
 - Tải mô hình embedding được chỉ định (Model này cực nhẹ và tối ưu cho CPU):
   ```bash
@@ -73,7 +76,9 @@ Dự án sử dụng mô hình embedding chạy local qua Ollama để tối ưu
 - Đảm bảo ứng dụng Ollama đang được chạy nền.
 
 ### 3. Cấu hình biến môi trường
+
 Tạo file `.env` ở thư mục gốc của dự án (hoặc đổi tên file `.env.example` thành `.env`) và điền các API Key của bạn:
+
 ```env
 GOOGLE_API_KEY=your_gemini_api_key
 QDRANT_URL=your_qdrant_cloud_cluster_url
@@ -81,9 +86,11 @@ QDRANT_API_KEY=your_qdrant_api_key
 ```
 
 ### 4. Chuẩn bị dữ liệu
+
 > **Lưu ý quan trọng**: Do file tài liệu gốc (`huong-dan-nau-an-200-mon-truyen-thong.pdf`) có dung lượng khá lớn (~51MB), file này **KHÔNG** được tải lên thư mục Github để giữ repo nhẹ nhất có thể.
 
 Để hệ thống hoạt động, bạn cần:
+
 1. Tạo thư mục `data/` ở thư mục gốc của dự án (nếu chưa có).
 2. Tải file tài liệu PDF gốc (bạn có thể cung cấp link Google Drive/Dropbox tải file ở đây) hoặc dùng bất kỳ file PDF nào bạn muốn chatbot đọc.
 3. Đặt file đó vào trong thư mục `data/`. Loader của hệ thống sẽ tự động quét và nhúng dữ liệu vào lần chạy đầu tiên.
@@ -94,24 +101,30 @@ Hệ thống được thiết kế tự động hoàn toàn: ở lần khởi ch
 
 **Cách 1: Chạy giao diện Console (CLI)**
 Dành cho người thích sự nhanh gọn, thao tác qua Terminal:
+
 ```bash
 cd app
 python main.py
 ```
-> *(Gõ `exit` hoặc `quit` để thoát)*
+
+> _(Gõ `exit` hoặc `quit` để thoát)_
 
 **Cách 2: Chạy giao diện Web (Streamlit)**
 Trải nghiệm không gian chat UI trực quan cực mượt trên trình duyệt:
+
 ```bash
 streamlit run app/streamlit_app.py
 ```
-> *(Mặc định truy cập tại `http://localhost:8501`)*
+
+> _(Mặc định truy cập tại `http://localhost:8501`)_
 
 ## 📝 Luồng xử lý kỹ thuật (Pipeline RAG)
+
 1. **Data Ingestion**: Quét thư mục `data/` -> Phân tích PDF -> Tách nhỏ đoạn văn (Chunk size: 900 / Overlap: 180).
 2. **Vectorization**: Mã hóa các phân đoạn nội dung thành Vector nhúng (768 dimensions) bằng Ollama.
 3. **Storage**: Lưu trữ Vectors vào giao diện Qdrant Cloud.
 4. **Retrieval & Generation**: Từ Command người dùng -> Agent sử dụng Tool tìm kiếm Top 6 node kết quả gần giống nhất bằng Cosine Distance -> LLM phân tích ngữ cảnh và sinh ngôn ngữ tự nhiên tiếng Việt trả về user.
 
 ---
-*Được phát triển với niềm đam mê chia sẻ và gìn giữ văn hóa ẩm thực truyền thống Việt Nam.* 🇻🇳❤️
+
+_Được phát triển với niềm đam mê chia sẻ và gìn giữ văn hóa ẩm thực truyền thống Việt Nam._ 🇻🇳❤️
