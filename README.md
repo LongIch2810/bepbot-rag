@@ -4,6 +4,7 @@
 Hệ thống đọc tài liệu công thức, tạo embeddings, lưu vào Qdrant và dùng Gemini để trả lời bằng tiếng Việt dựa trên ngữ cảnh truy xuất được.
 
 Phiên bản hiện tại có giao diện web Streamlit đã được cập nhật:
+
 - Upload tài liệu người dùng (`PDF`, `DOCX`, `TXT`) để bổ sung nguồn tri thức.
 - Gửi câu hỏi ngay trong khung chat.
 - Mỗi lượt chat có thể đính kèm `1 ảnh`.
@@ -52,7 +53,6 @@ rag-project/
 ├── data/
 ├── utils/
 ├── streamlit_app.py
-├── test.py
 ├── requirements.txt
 └── .env
 ```
@@ -114,6 +114,7 @@ data/huong-dan-nau-an-200-mon-truyen-thong.pdf
 ```
 
 Ở lần chạy đầu tiên, hệ thống sẽ:
+
 1. đọc tài liệu
 2. chia chunk
 3. tạo embeddings
@@ -150,6 +151,7 @@ python -m app.main
 ### 1. Upload tài liệu
 
 Trong sidebar:
+
 - tải lên `PDF`, `DOCX`, hoặc `TXT`
 - bấm `Xử lý tài liệu`
 - hệ thống kiểm duyệt nội dung rồi nạp vào user knowledge base
@@ -163,10 +165,12 @@ Trong sidebar:
 ### 3. Chat kèm ảnh
 
 Trong khung chat:
+
 - nhập câu hỏi
 - có thể đính kèm `1 ảnh JPG/PNG/JPEG` cho đúng lượt hỏi đó
 
 Ảnh sẽ được:
+
 - hiển thị ngay trong bubble của người dùng
 - phân tích bằng Gemini Vision
 - trích `nhãn ảnh / tên món`
@@ -176,6 +180,7 @@ Trong khung chat:
 ### 4. Nhận câu trả lời
 
 Hệ thống sẽ kết hợp:
+
 - ngữ cảnh truy xuất từ Qdrant
 - chế độ truy vấn đang chọn
 - thông tin trích từ ảnh đính kèm
@@ -210,7 +215,6 @@ User question
 - [app/image_text_extractor.py](app/image_text_extractor.py): wrapper Vision để đọc thông tin từ ảnh
 - [app/vision_image.py](app/vision_image.py): structured output cho phân tích ảnh
 - [app/retriever.py](app/retriever.py): truy xuất ngữ cảnh từ vector store
-- [test.py](test.py): màn hình test riêng cho Vision LLM
 
 ## Lưu ý
 
@@ -225,10 +229,4 @@ Chạy kiểm tra syntax nhanh:
 
 ```bash
 python -m py_compile streamlit_app.py app/workflow.py app/validator.py
-```
-
-Chạy màn hình test Vision:
-
-```bash
-streamlit run test.py
 ```
