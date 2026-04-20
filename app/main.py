@@ -1,4 +1,6 @@
-from workflow import Workflow
+from app.workflow import Workflow
+from app.config import SYSTEM_ONLY
+
 
 def main():
     print("=== Chatbot RAG Công Thức Nấu Ăn Việt Nam ===")
@@ -22,13 +24,14 @@ def main():
                 break
 
             try:
-                answer = workflow.retriever_and_generattion(query)
+                answer = workflow.retriever_and_generattion(query, SYSTEM_ONLY)
                 print(f"Bot: {answer}\n")
             except Exception as e:
                 print(f"Lỗi khi truy vấn: {e}\n")
 
     except Exception as e:
         print(f"Lỗi khởi tạo hệ thống: {e}")
+
 
 if __name__ == "__main__":
     main()

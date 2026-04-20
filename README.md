@@ -1,130 +1,234 @@
-# 🍲 BếpBot RAG - Vietnamese Recipe Assistant
+# BepBot RAG
 
-**BếpBot RAG** là một hệ thống chatbot thông minh ứng dụng kiến trúc **Retrieval-Augmented Generation (RAG)**, chuyên giải đáp và hướng dẫn nấu 200 món ăn truyền thống của Việt Nam. Hệ thống thực hiện trích xuất dữ liệu từ tài liệu tham khảo chuẩn, số hóa bằng mô hình nhúng (Embeddings) và sử dụng LLM để cung cấp câu trả lời chính xác, sát với nguyên bản nhất.
+`BepBot RAG` là chatbot hỏi đáp về công thức nấu ăn Việt Nam, xây trên kiến trúc `Retrieval-Augmented Generation (RAG)`.
+Hệ thống đọc tài liệu công thức, tạo embeddings, lưu vào Qdrant và dùng Gemini để trả lời bằng tiếng Việt dựa trên ngữ cảnh truy xuất được.
 
-Dự án cá nhân này được thiết kế để trình diễn luồng xây dựng một ứng dụng RAG hoàn chỉnh kết hợp giữa các dịch vụ Cloud và Local AI.
+Phiên bản hiện tại có giao diện web Streamlit đã được cập nhật:
+- Upload tài liệu người dùng (`PDF`, `DOCX`, `TXT`) để bổ sung nguồn tri thức.
+- Gửi câu hỏi ngay trong khung chat.
+- Mỗi lượt chat có thể đính kèm `1 ảnh`.
+- Ảnh được phân tích bằng Gemini Vision để lấy `tên món ăn` và `text trong ảnh`, sau đó dùng làm ngữ cảnh bổ sung cho đúng lượt hỏi đó.
 
----
+## Tính năng chính
 
-## 🚀 Tính năng nổi bật
+- Hỏi đáp về món ăn Việt Nam dựa trên tài liệu hệ thống.
+- Bổ sung tài liệu riêng của người dùng và truy vấn theo 3 chế độ:
+  - `system_only`
+  - `user_only`
+  - `hybrid`
+- Phân tích ảnh đính kèm theo từng tin nhắn:
+  - nhận diện món ăn
+  - đọc chữ trong ảnh
+  - dùng nội dung ảnh để mở rộng truy vấn RAG
+- Giao diện Streamlit thân thiện hơn cho nhập liệu và theo dõi hội thoại.
 
-- **Hỏi đáp thông minh**: Trả lời chính xác công thức, nguyên liệu, và tỷ lệ cách làm dựa trên tài liệu gốc, không tự bịa thông tin.
-- **Nguồn dữ liệu chuẩn**: Tích hợp sách hướng dẫn 200 món ăn truyền thống gia đình.
-- **Đa nền tảng giao diện**: Hỗ trợ cả giao diện dòng lệnh (CLI) tốc độ cao và giao diện Web trực quan (Streamlit).
-- **Tối ưu chi phí & Bảo mật**: Sử dụng Local Embeddings chạy trên máy cá nhân để vectorize tài liệu.
+## Tech Stack
 
-## 🛠 Tech Stack
+- LLM: `gemini-2.5-flash`
+- Vision: `langchain-google-genai`
+- Embeddings: `nomic-embed-text-v2-moe` qua `Ollama`
+- Vector DB: `Qdrant Cloud`
+- Framework: `LangChain`, `Streamlit`
+- Ngôn ngữ: `Python 3.10+`
 
-- **Large Language Model (LLM)**: Google Gemini (`gemini-2.5-flash`) thông qua `langchain-google-genai`.
-- **Embeddings**: Ollama (`nomic-embed-text-v2-moe`) chạy Local.
-- **Vector Database**: Qdrant Cloud.
-- **Framework**: LangChain, Streamlit.
-- **Ngôn ngữ**: Python 3.10+
-
-## 📂 Cấu trúc dự án
+## Cấu trúc dự án
 
 ```text
-bepbot-rag/
+rag-project/
 ├── app/
-│   ├── main.py            # Entry point: Chạy chatbot giao diện CLI
-│   ├── streamlit_app.py   # Entry point: Chạy giao diện Web (Streamlit)
-│   ├── workflow.py        # Orchestrator: Điều phối toàn bộ pipeline RAG
-│   ├── config.py          # Quản lý hằng số và cấu hình hệ thống
-│   ├── loader.py          # Module đọc file PDF (PyPDFLoader)
-│   ├── splitter.py        # Module chia nhỏ văn bản (RecursiveCharacterTextSplitter)
-│   ├── embedder.py        # Module tạo mô hình Embeddings
-│   ├── vectorstore.py     # Module kết nối và quản lý Qdrant Collection
-│   ├── retriever.py       # Công cụ tìm kiếm vector (Similarity Search)
-│   ├── prompts.py         # Quản lý System Prompt cho Agent
-│   └── agent.py           # Thiết lập LangChain Agent với công cụ truy xuất
+│   ├── config.py
+│   ├── embedder.py
+│   ├── image_text_extractor.py
+│   ├── llm_scanning_content.py
+│   ├── loader.py
+│   ├── main.py
+│   ├── prompts.py
+│   ├── retriever.py
+│   ├── splitter.py
+│   ├── validator.py
+│   ├── vectorstore.py
+│   ├── vision_image.py
+│   └── workflow.py
 ├── data/
-│   └── huong-dan-nau-an-200-mon-truyen-thong.pdf  # Tài liệu nguồn định dạng PDF
-├── .env.example           # File mẫu tham khảo các biến môi trường
-├── .gitignore
-└── requirements.txt       # Danh sách các thư viện phụ thuộc
+├── utils/
+├── streamlit_app.py
+├── test.py
+├── requirements.txt
+└── .env
 ```
 
-## ⚙️ Hướng dẫn cài đặt
+## Chuẩn bị môi trường
 
-### 1. Chuẩn bị môi trường & Cài đặt thư viện
+### 1. Tạo virtual environment
 
 ```bash
-# Clone repository
-git clone https://github.com/LongIch2810/bepbot-rag.git
-cd bepbot-rag
-
-# Khởi tạo và kích hoạt virtual environment (Khuyến nghị)
 python -m venv venv
-# Trên Windows:
-venv\Scripts\activate
-# Trên macOS/Linux:
-source venv/bin/activate
+```
 
-# Cài đặt các thư viện yêu cầu
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+macOS / Linux:
+
+```bash
+source venv/bin/activate
+```
+
+### 2. Cài dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Thiết lập Ollama (Local Embeddings)
+### 3. Chuẩn bị Ollama
 
-Dự án sử dụng mô hình embedding chạy local qua Ollama để tối ưu hiệu suất và chi phí.
+Cài `Ollama` và tải model embedding:
 
-- Cài đặt [Ollama](https://ollama.com/) vào máy tính của bạn.
-- Tải mô hình embedding được chỉ định (Model này cực nhẹ và tối ưu cho CPU):
-  ```bash
-  ollama pull nomic-embed-text-v2-moe
-  ```
-- Đảm bảo ứng dụng Ollama đang được chạy nền.
+```bash
+ollama pull nomic-embed-text-v2-moe
+```
 
-### 3. Cấu hình biến môi trường
+Đảm bảo Ollama đang chạy khi khởi động app.
 
-Tạo file `.env` ở thư mục gốc của dự án (hoặc đổi tên file `.env.example` thành `.env`) và điền các API Key của bạn:
+### 4. Cấu hình biến môi trường
+
+Tạo file `.env` ở thư mục gốc:
 
 ```env
-GOOGLE_API_KEY=your_gemini_api_key
-QDRANT_URL=your_qdrant_cloud_cluster_url
+GOOGLE_API_KEY=your_google_api_key
+QDRANT_URL=your_qdrant_url
 QDRANT_API_KEY=your_qdrant_api_key
 ```
 
-### 4. Chuẩn bị dữ liệu
+### 5. Chuẩn bị dữ liệu
 
-> **Lưu ý quan trọng**: Do file tài liệu gốc (`huong-dan-nau-an-200-mon-truyen-thong.pdf`) có dung lượng khá lớn (~51MB), file này **KHÔNG** được tải lên thư mục Github để giữ repo nhẹ nhất có thể.
+Đặt file PDF nguồn vào thư mục `data/`.
 
-Để hệ thống hoạt động, bạn cần:
+Ví dụ:
 
-1. Tạo thư mục `data/` ở thư mục gốc của dự án (nếu chưa có).
-2. Tải file tài liệu PDF gốc (bạn có thể cung cấp link Google Drive/Dropbox tải file ở đây) hoặc dùng bất kỳ file PDF nào bạn muốn chatbot đọc.
-3. Đặt file đó vào trong thư mục `data/`. Loader của hệ thống sẽ tự động quét và nhúng dữ liệu vào lần chạy đầu tiên.
-
-## ▶️ Hướng dẫn sử dụng
-
-Hệ thống được thiết kế tự động hoàn toàn: ở lần khởi chạy đầu tiên, mã nguồn sẽ đọc PDF, chunking tài liệu, vectorize và đẩy lên Qdrant Collection. Ở các lần chạy sau, hệ thống sẽ bỏ qua bước này để tối ưu thời gian khởi động.
-
-**Cách 1: Chạy giao diện Console (CLI)**
-Dành cho người thích sự nhanh gọn, thao tác qua Terminal:
-
-```bash
-cd app
-python main.py
+```text
+data/huong-dan-nau-an-200-mon-truyen-thong.pdf
 ```
 
-> _(Gõ `exit` hoặc `quit` để thoát)_
+Ở lần chạy đầu tiên, hệ thống sẽ:
+1. đọc tài liệu
+2. chia chunk
+3. tạo embeddings
+4. đẩy dữ liệu lên Qdrant
 
-**Cách 2: Chạy giao diện Web (Streamlit)**
-Trải nghiệm không gian chat UI trực quan cực mượt trên trình duyệt:
+Những lần sau, nếu collection đã tồn tại, hệ thống sẽ không re-index lại.
+
+## Chạy ứng dụng
+
+### Giao diện web Streamlit
+
+Đây là entrypoint chính hiện tại:
 
 ```bash
-streamlit run app/streamlit_app.py
+streamlit run streamlit_app.py
 ```
 
-> _(Mặc định truy cập tại `http://localhost:8501`)_
+Ứng dụng mặc định chạy tại:
 
-## 📝 Luồng xử lý kỹ thuật (Pipeline RAG)
+```text
+http://localhost:8501
+```
 
-1. **Data Ingestion**: Quét thư mục `data/` -> Phân tích PDF -> Tách nhỏ đoạn văn (Chunk size: 900 / Overlap: 180).
-2. **Vectorization**: Mã hóa các phân đoạn nội dung thành Vector nhúng (768 dimensions) bằng Ollama.
-3. **Storage**: Lưu trữ Vectors vào giao diện Qdrant Cloud.
-4. **Retrieval & Generation**: Từ Command người dùng -> Agent sử dụng Tool tìm kiếm Top 6 node kết quả gần giống nhất bằng Cosine Distance -> LLM phân tích ngữ cảnh và sinh ngôn ngữ tự nhiên tiếng Việt trả về user.
+### Giao diện CLI
 
----
+CLI vẫn có sẵn để test nhanh:
 
-_Được phát triển với niềm đam mê chia sẻ và gìn giữ văn hóa ẩm thực truyền thống Việt Nam._ 🇻🇳❤️
+```bash
+python -m app.main
+```
+
+## Cách dùng giao diện web
+
+### 1. Upload tài liệu
+
+Trong sidebar:
+- tải lên `PDF`, `DOCX`, hoặc `TXT`
+- bấm `Xử lý tài liệu`
+- hệ thống kiểm duyệt nội dung rồi nạp vào user knowledge base
+
+### 2. Chọn chế độ trả lời
+
+- `Chỉ dùng tài liệu hệ thống`
+- `Chỉ dùng tài liệu người dùng`
+- `Dùng cả hai nguồn`
+
+### 3. Chat kèm ảnh
+
+Trong khung chat:
+- nhập câu hỏi
+- có thể đính kèm `1 ảnh JPG/PNG/JPEG` cho đúng lượt hỏi đó
+
+Ảnh sẽ được:
+- hiển thị ngay trong bubble của người dùng
+- phân tích bằng Gemini Vision
+- trích `nhãn ảnh / tên món`
+- trích `text_content` nếu ảnh có chữ
+- dùng làm ngữ cảnh phụ cho câu trả lời của lượt chat đó
+
+### 4. Nhận câu trả lời
+
+Hệ thống sẽ kết hợp:
+- ngữ cảnh truy xuất từ Qdrant
+- chế độ truy vấn đang chọn
+- thông tin trích từ ảnh đính kèm
+
+## Luồng xử lý
+
+### Ingestion
+
+```text
+PDF/TXT/DOCX
+-> Loader
+-> Splitter
+-> Embeddings
+-> Qdrant
+```
+
+### Query
+
+```text
+User question
+-> optional image analysis
+-> retrieval query expansion
+-> Retriever
+-> Gemini answer generation
+```
+
+## Các file quan trọng
+
+- [streamlit_app.py](streamlit_app.py): giao diện web chính
+- [app/workflow.py](app/workflow.py): điều phối toàn bộ luồng RAG
+- [app/validator.py](app/validator.py): kiểm duyệt file upload và ảnh
+- [app/image_text_extractor.py](app/image_text_extractor.py): wrapper Vision để đọc thông tin từ ảnh
+- [app/vision_image.py](app/vision_image.py): structured output cho phân tích ảnh
+- [app/retriever.py](app/retriever.py): truy xuất ngữ cảnh từ vector store
+- [test.py](test.py): màn hình test riêng cho Vision LLM
+
+## Lưu ý
+
+- `rag.py` là file thử nghiệm cũ, không thuộc pipeline chính.
+- Dự án hiện ưu tiên luồng Streamlit hơn CLI.
+- Mỗi lần chat chỉ nên đính kèm tối đa `1 ảnh`.
+- Ảnh không được lưu vào vector store; chỉ dùng làm ngữ cảnh cho lượt hỏi hiện tại.
+
+## Lệnh hữu ích
+
+Chạy kiểm tra syntax nhanh:
+
+```bash
+python -m py_compile streamlit_app.py app/workflow.py app/validator.py
+```
+
+Chạy màn hình test Vision:
+
+```bash
+streamlit run test.py
+```
