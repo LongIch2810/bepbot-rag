@@ -1,3 +1,5 @@
+import html
+
 import streamlit as st
 
 from app.config import (
@@ -104,6 +106,39 @@ st.markdown(
         color: #f5e6d3 !important;
     }
 
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+        background: linear-gradient(135deg, #f77f00 0%, #e85d04 100%) !important;
+        color: #fffaf3 !important;
+        border: 1px solid rgba(255, 219, 181, .28) !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 8px 18px rgba(61, 44, 44, .22);
+        transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+        background: linear-gradient(135deg, #ffd166 0%, #ff9f1c 100%) !important;
+        color: #5b2500 !important;
+        border-color: rgba(255, 244, 230, .5) !important;
+        box-shadow: 0 12px 24px rgba(61, 44, 44, .26);
+        transform: translateY(-1px);
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover p,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover span,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover div {
+        color: #5b2500 !important;
+        -webkit-text-fill-color: #5b2500 !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:disabled {
+        background: rgba(255, 255, 255, .14) !important;
+        color: rgba(255, 243, 223, .72) !important;
+        border-color: rgba(255, 255, 255, .12) !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
     .sidebar-title {
         display: flex;
         align-items: center;
@@ -196,6 +231,86 @@ st.markdown(
         margin-bottom: .5rem;
         box-shadow: 0 2px 8px rgba(180, 120, 60, .06);
     }
+
+    .vision-status {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        margin-top: .8rem;
+        padding: .85rem 1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(214, 120, 63, .16);
+        background: linear-gradient(180deg, rgba(255, 250, 245, .96) 0%, rgba(255, 244, 234, .96) 100%);
+    }
+
+    .vision-status.loading {
+        border-color: rgba(245, 158, 11, .35);
+        background: linear-gradient(180deg, rgba(255, 249, 235, .98) 0%, rgba(255, 241, 220, .98) 100%);
+    }
+
+    .vision-status.error {
+        border-color: rgba(230, 57, 70, .28);
+        background: linear-gradient(180deg, rgba(255, 243, 244, .98) 0%, rgba(255, 233, 236, .98) 100%);
+    }
+
+    .vision-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        background: rgba(247, 127, 0, .14);
+    }
+
+    .vision-status.error .vision-icon {
+        background: rgba(230, 57, 70, .12);
+    }
+
+    .vision-copy strong {
+        display: block;
+        color: #8a3b12;
+        font-size: .92rem;
+        margin-bottom: .18rem;
+    }
+
+    .vision-copy span {
+        color: #6b5a4e;
+        font-size: .84rem;
+        line-height: 1.45;
+    }
+
+    .vision-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+        margin-top: .7rem;
+    }
+
+    .vision-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: .28rem .62rem;
+        border-radius: 999px;
+        background: rgba(214, 120, 63, .1);
+        border: 1px solid rgba(214, 120, 63, .18);
+        color: #8a3b12;
+        font-size: .76rem;
+        font-weight: 600;
+    }
+
+    .vision-preview {
+        margin-top: .7rem;
+        padding: .7rem .85rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .66);
+        border: 1px solid rgba(214, 120, 63, .12);
+        color: #59483c;
+        font-size: .84rem;
+        line-height: 1.5;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -273,6 +388,75 @@ def analyze_turn_image(workflow, uploaded_file):
         raise ValueError(result["error"])
 
     return result
+
+
+def render_image_analysis(analysis=None, loading=False, error=None):
+    if loading:
+        st.markdown(
+            """
+            <div class="vision-status loading">
+                <div class="vision-icon">...</div>
+                <div class="vision-copy">
+                    <strong>Đang phân tích ảnh</strong>
+                    <span>Hệ thống đang chạy vision image để nhận diện nội dung, chữ trong ảnh và ngữ cảnh món ăn.</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    if error:
+        st.markdown(
+            f"""
+            <div class="vision-status error">
+                <div class="vision-icon">!</div>
+                <div class="vision-copy">
+                    <strong>Không thể phân tích ảnh</strong>
+                    <span>{html.escape(error)}</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    if not analysis:
+        return
+
+    chips = []
+    if analysis.get("is_food_image"):
+        chips.append("Ảnh món ăn")
+    if analysis.get("image_label"):
+        chips.append(f"Nhãn ảnh: {analysis['image_label']}")
+    if analysis.get("is_text"):
+        chips.append("Có text trong ảnh")
+
+    chip_markup = "".join(
+        f'<span class="vision-chip">{html.escape(chip)}</span>' for chip in chips
+    )
+    text_content = (analysis.get("text_content") or "").strip()
+    preview = ""
+    if text_content:
+        preview = (
+            '<div class="vision-preview"><strong>Text trích từ ảnh:</strong><br>'
+            f"{html.escape(text_content)}</div>"
+        )
+
+    st.markdown(
+        f"""
+        <div class="vision-status">
+            <div class="vision-icon">OK</div>
+            <div class="vision-copy">
+                <strong>Đã phân tích ảnh xong</strong>
+                <span>Kết quả vision sẽ được đưa vào đúng lượt trả lời hiện tại.</span>
+                <div class="vision-chip-list">{chip_markup}</div>
+                {preview}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_sidebar(workflow):
@@ -380,6 +564,10 @@ def render_message(message):
                     chips.append("Có text trong ảnh")
                 if chips:
                     st.caption(" | ".join(chips))
+            if message.get("image_analysis_error"):
+                render_image_analysis(error=message["image_analysis_error"])
+            elif message.get("image_analysis"):
+                render_image_analysis(analysis=message["image_analysis"])
 
         st.markdown(message["content"])
 
@@ -488,17 +676,39 @@ if chat_payload:
         "image_bytes": image_bytes,
         "image_name": image_name,
         "image_analysis": None,
+        "image_analysis_error": None,
     }
+
+    analysis_placeholder = None
+    if uploaded_image is not None:
+        with st.chat_message("user"):
+            st.image(
+                image_bytes,
+                caption=image_name or "áº¢nh Ä‘Ã­nh kÃ¨m",
+                width="stretch",
+            )
+            analysis_placeholder = st.empty()
+            with analysis_placeholder.container():
+                render_image_analysis(loading=True)
+            st.markdown(prompt)
 
     if uploaded_image is not None:
         try:
             image_analysis = analyze_turn_image(workflow, uploaded_image)
             user_message["image_analysis"] = image_analysis
         except Exception as exc:
-            user_message["content"] = f"{prompt}\n\n[Lỗi khi phân tích ảnh: {exc}]"
+            user_message["image_analysis_error"] = str(exc)
+
+    if analysis_placeholder is not None:
+        with analysis_placeholder.container():
+            if user_message["image_analysis_error"]:
+                render_image_analysis(error=user_message["image_analysis_error"])
+            elif user_message["image_analysis"]:
+                render_image_analysis(analysis=user_message["image_analysis"])
 
     st.session_state.messages.append(user_message)
-    render_message(user_message)
+    if uploaded_image is None:
+        render_message(user_message)
 
     with st.chat_message("assistant", avatar="👨‍🍳"):
         with st.spinner("Đang tìm kiếm và tổng hợp câu trả lời..."):

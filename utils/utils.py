@@ -2,6 +2,8 @@ import os
 import tempfile
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
+import docx2txt
+import pythoncom
 from docx2pdf import convert
 
 
@@ -52,12 +54,35 @@ def get_temp_path(uploaded_file):
         return tmp_file.name
 
 
+def extract_docx_text(uploaded_file):
+    temp_path = None
+
+    try:
+        temp_path = get_temp_path(uploaded_file)
+        return docx2txt.process(temp_path) or ""
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
 def convert_docx_to_pdf_bytes(uploaded_file):
     with tempfile.TemporaryDirectory() as temp_dir:
         docx_path = Path(temp_dir) / uploaded_file.name
         pdf_path = docx_path.with_suffix(".pdf")
 
         docx_path.write_bytes(uploaded_file.getvalue())
-        convert(str(docx_path), str(pdf_path))
+
+        pythoncom.CoInitialize()
+        try:
+            convert(str(docx_path), str(pdf_path))
+        except Exception as exc:
+            raise RuntimeError(
+                f"Không thể convert DOCX sang PDF. Hãy kiểm tra Microsoft Word và quyền COM trên máy. Chi tiết: {exc}"
+            ) from exc
+        finally:
+            pythoncom.CoUninitialize()
+
+        if not pdf_path.exists():
+            raise RuntimeError("Convert DOCX sang PDF thất bại: không tạo được file PDF.")
 
         return pdf_path.read_bytes()
